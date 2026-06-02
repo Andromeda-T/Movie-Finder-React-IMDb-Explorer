@@ -45,32 +45,37 @@ const tempWatchedData = [
 
 const average = (arr) =>
     arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
+
 const key = "54d24107";
 
 export default function App() {
+    const [query, setQuery] = useState("");
     const [movies, setMovies] = useState([]);
     const [watched, setWatched] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isError, setIsError] = useState("");
-    const tempQuery = "The Fragrant Flower Blooms with Dignitys";
 
     useEffect(() => {
         async function fetchMovies() {
             try {
+                if (query.length < 3) throw new Error("Search for your movie");
+
+                setIsError("");
                 setIsLoading(true);
                 const res = await fetch(
-                    `http://www.omdbapi.com/?apikey=${key}&s=${tempQuery}`
+                    `http://www.omdbapi.com/?apikey=${key}&s=${query}`
                 );
 
                 if (!res.ok) throw new Error("Something went Wrong");
+                setIsLoading(false);
 
                 const data = await res.json();
 
-                if (data.Response === "False")
-                    throw new Error("Movie not found nga");
+                console.log(data);
+
+                if (data.Response === "False") throw new Error(data.Error);
 
                 setIsError("");
-                setIsLoading(false);
                 setMovies(data.Search);
             } catch (err) {
                 setIsError(err.message);
@@ -79,11 +84,12 @@ export default function App() {
             }
         }
         fetchMovies();
-    }, []);
+    }, [query]);
+
     return (
         <>
             <Navbar>
-                <Search />
+                <Search query={query} setQuery={setQuery} />
                 <FoundMovies movies={movies} />
             </Navbar>
             <Main>
@@ -193,9 +199,7 @@ function MovieList({ watched }) {
     );
 }
 
-function Search() {
-    const [query, setQuery] = useState("");
-
+function Search({ query, setQuery }) {
     return (
         <input
             className="search"
