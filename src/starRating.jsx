@@ -15,7 +15,8 @@ export default function StarRating({
     color = "#fcc419",
     size = "48px",
     message = [],
-    defaultRating = 0
+    defaultRating = 0,
+    setRate = 0
 }) {
     const startStyle = {
         height: size,
@@ -46,12 +47,13 @@ export default function StarRating({
                         value={i + 1}
                         key={i}
                         startStyle={startStyle}
+                        setRate={setRate}
                     />
                 ))}
             </div>
             <p style={textStyle}>
                 {maxRating === message.length
-                    ? message[curStar > curHover ? curStar - 1 : curHover - 1]
+                    ? message[curStar > curHover ? curStar : curHover]
                     : curStar > curHover
                       ? curStar
                       : curHover}
@@ -66,7 +68,8 @@ function Star({
     curStar,
     curHover,
     setCurHover,
-    startStyle
+    startStyle,
+    setRate
 }) {
     return (
         <>
@@ -74,6 +77,7 @@ function Star({
                 <svg
                     onClick={() => {
                         setCurStar(value);
+                        setRate(value);
                     }}
                     onMouseEnter={() => setCurHover(value)}
                     onMouseLeave={() => setCurHover(0)}
@@ -90,6 +94,7 @@ function Star({
                 <svg
                     onClick={() => {
                         setCurStar(value);
+                        setRate(value);
                     }}
                     onMouseEnter={() => setCurHover(value)}
                     onMouseLeave={() => setCurHover(0)}
