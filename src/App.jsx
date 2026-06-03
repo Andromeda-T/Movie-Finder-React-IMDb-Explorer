@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import StarRating from "./StarRating";
 
 const average = (arr) =>
-    arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
+    arr.length === 0 ? 0 : arr.reduce((acc, cur) => acc + cur, 0) / arr.length;
 
 const key = "54d24107";
 
@@ -72,7 +72,7 @@ export default function App() {
                             />
                         </>
                     ) : (
-                        <SelctedMovie
+                        <SelectedMovie
                             watched={watched}
                             setWatched={setWatched}
                             setSelectedMovie={setSelectedMovie}
@@ -101,7 +101,7 @@ function Navbar({ children }) {
 function RenderApiMovieBox({ movies, setSelectedMovie }) {
     return (
         <ul className="list">
-            {movies?.map((movie) => (
+            {movies.map((movie) => (
                 <li
                     onClick={() =>
                         setSelectedMovie((selected) =>
@@ -126,13 +126,13 @@ function RenderApiMovieBox({ movies, setSelectedMovie }) {
 
 function Summary({ watched }) {
     const avgImdbRating = Math.round(
-        average(watched?.map((movie) => movie.imdbRating))
+        average(watched.map((movie) => movie.imdbRating))
     );
     const avgUserRating = Math.round(
-        average(watched?.map((movie) => movie.rate))
+        average(watched.map((movie) => movie.rate))
     );
     const avgRuntime = Math.round(
-        average(watched?.map((movie) => movie.rumtimes))
+        average(watched.map((movie) => movie.runtimes))
     );
     return (
         <div className="summary">
@@ -140,7 +140,7 @@ function Summary({ watched }) {
             <div>
                 <p>
                     <span>#️⃣</span>
-                    <span>{watched?.length} movies</span>
+                    <span>{watched.length} movies</span>
                 </p>
                 <p>
                     <span>⭐️</span>
@@ -162,8 +162,8 @@ function Summary({ watched }) {
 function MovieList({ watched, setWatched }) {
     return (
         <ul className="list list-movies">
-            {watched?.map(
-                ({ imdbID, title, poster, imdbRating, rate, rumtimes }) => (
+            {watched.map(
+                ({ imdbID, title, poster, imdbRating, rate, runtimes }) => (
                     <li key={imdbID}>
                         <img src={poster} alt={`${title} poster`} />
                         <h3>{title}</h3>
@@ -178,7 +178,7 @@ function MovieList({ watched, setWatched }) {
                             </p>
                             <p>
                                 <span>⏳</span>
-                                <span>{rumtimes} min</span>
+                                <span>{runtimes} min</span>
                             </p>
                         </div>
                         <button
@@ -249,13 +249,13 @@ function Loader() {
     return <p className="loader">Loading ...</p>;
 }
 
-function SelctedMovie({
+function SelectedMovie({
     watched,
     setWatched,
     selectedMovie,
     setSelectedMovie
 }) {
-    const [movie, setmovie] = useState([]);
+    const [movie, setMovie] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isError, setIsError] = useState("");
     const [rate, setRate] = useState(0);
@@ -296,7 +296,7 @@ function SelctedMovie({
                 if (data.Response === "False") throw new Error(data.Error);
 
                 setIsError("");
-                setmovie(data);
+                setMovie(data);
                 if (data.Response === "False") throw new Error(data.Error);
             } catch (err) {
                 setIsError(err.message);
@@ -320,7 +320,7 @@ function SelctedMovie({
                         >
                             &larr;
                         </button>
-                        <img src={poster} alt={`poster of ${poster}`}></img>
+                        <img src={poster} alt={`poster of ${title}`}></img>
                         <div className="details-overview">
                             <h2>{title}</h2>
                             <p>
