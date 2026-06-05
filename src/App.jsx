@@ -275,7 +275,6 @@ function SelectedMovie({
     } = movie;
 
     const watchedMovie = watched.find((movie) => movie.imdbID === imdbID);
-
     const isWatched = Boolean(watchedMovie);
     const isWatchedRating = watchedMovie?.rate;
 
@@ -294,10 +293,10 @@ function SelectedMovie({
                 const data = await res.json();
 
                 if (data.Response === "False") throw new Error(data.Error);
+                document.title = title;
 
                 setIsError("");
                 setMovie(data);
-                if (data.Response === "False") throw new Error(data.Error);
             } catch (err) {
                 setIsError(err.message);
             } finally {
