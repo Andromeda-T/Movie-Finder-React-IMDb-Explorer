@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { useMovies } from "./useMovies";
+import { useLocalStorage } from "./useLocalStorage";
 import StarRating from "./StarRating";
 
 const average = (arr) =>
@@ -8,56 +10,9 @@ const key = "54d24107";
 
 export default function App() {
     const [query, setQuery] = useState("");
-    const [movies, setMovies] = useState([]);
-
-    const [watched, setWatched] = useState(function () {
-        const stored = localStorage.getItem("watched");
-        return stored ? JSON.parse(stored) : [];
-    });
-
-    const [isLoading, setIsLoading] = useState(false);
     const [selectedMovie, setSelectedMovie] = useState("");
-    const [isError, setIsError] = useState("");
-
-    useEffect(() => {
-        localStorage.setItem("watched", JSON.stringify(watched));
-    }, [watched]);
-
-    useEffect(() => {
-        const controller = new AbortController();
-
-        async function fetchMovies() {
-            try {
-                if (query.length < 3) throw new Error("Search for your movie");
-
-                setIsError("");
-                setIsLoading(true);
-                const res = await fetch(
-                    `http://www.omdbapi.com/?apikey=${key}&s=${query}`,
-                    { signal: controller.signal }
-                );
-
-                if (!res.ok) throw new Error("Something went Wrong");
-                setIsLoading(false);
-
-                const data = await res.json();
-
-                if (data.Response === "False") throw new Error(data.Error);
-
-                setIsError("");
-                setMovies(data.Search);
-            } catch (err) {
-                if (err.name !== "AbortError") {
-                    setIsError(err.message);
-                }
-            } finally {
-                setIsLoading(false);
-            }
-        }
-        fetchMovies();
-
-        return () => controller.abort();
-    }, [query]);
+    const { movies, isLoading, isError } = useMovies(query);
+    const [watched, setWatched] = useLocalStorage([], "watched");
 
     return (
         <>
@@ -142,13 +97,21 @@ function RenderApiMovieBox({ movies, setSelectedMovie }) {
 
 function Summary({ watched }) {
     const avgImdbRating = Math.round(
-        average(watched.map((movie) => Number(movie.imdbRating)))
+        average(
+            watched.map((movie) =>
+                movie.imdbRating > 0 ? Number(movie.imdbRating) : 0
+            )
+        )
     );
     const avgUserRating = Math.round(
         average(watched.map((movie) => movie.rate))
     );
     const avgRuntime = Math.round(
-        average(watched.map((movie) => movie.numRuntime))
+        average(
+            watched.map((movie) =>
+                movie.numRuntime > 0 ? movie.numRuntime : 0
+            )
+        )
     );
     return (
         <div className="summary">
@@ -298,7 +261,6 @@ function SelectedMovie({
     const {
         imdbID,
         Title: title,
-        Year: year,
         Poster: poster,
         Runtime: runtime,
         imdbRating,
@@ -312,6 +274,14 @@ function SelectedMovie({
     const watchedMovie = watched.find((movie) => movie.imdbID === imdbID);
     const isWatched = Boolean(watchedMovie);
     const isWatchedRating = watchedMovie?.rate;
+
+    // const stars = useRef(0);
+
+    // useEffect(() => {
+    //     if (rate) stars.current++;
+
+    //     console.log(stars);
+    // }, [rate]);
 
     useEffect(() => {
         async function fetchMovies() {
@@ -449,9 +419,7 @@ function addToMovieList({
     setSelectedMovie,
     watched
 }) {
-    const numRuntime = runtime >= 0 ? Number(runtime.replace(" min", "")) : 0;
-
-    console.log(numRuntime);
+    const numRuntime = Number(runtime.replace(" min", ""));
 
     setWatched((watched) => [
         ...watched,
